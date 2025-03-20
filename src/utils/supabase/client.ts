@@ -1,12 +1,17 @@
-import { createBrowserClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_KEY, SUPABASE_URL } from "./constants";
 
-export const supabaseBrowserClient = createBrowserClient(
+// Log kết nối cho debugging
+console.log("Connecting to Supabase:", SUPABASE_URL);
+
+export const supabaseBrowserClient = createClient(
   SUPABASE_URL,
   SUPABASE_KEY,
   {
-    db: {
-      schema: "public",
-    },
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
   }
 );

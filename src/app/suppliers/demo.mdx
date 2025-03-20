@@ -1,0 +1,80 @@
+# Hướng dẫn sử dụng Mock Data trong Supplier Management
+
+Mô-đun quản lý nhà cung cấp đã được tích hợp dữ liệu mẫu (mock data) để thuận tiện cho việc kiểm thử và phát triển. Dưới đây là hướng dẫn sử dụng:
+
+## 1. Cấu trúc Mock Data
+
+Toàn bộ dữ liệu mẫu được tổ chức trong file `src/mock/suppliers.ts` và bao gồm:
+
+- `mockSuppliers`: Danh sách nhà cung cấp
+- `mockSupplierContacts`: Danh sách người liên hệ
+- `mockSupplierContracts`: Danh sách hợp đồng
+- `mockSupplierContractPayments`: Danh sách thanh toán hợp đồng
+- `mockSupplierTransactions`: Danh sách giao dịch
+- `mockSupplierRatings`: Danh sách đánh giá
+
+## 2. Các hàm trợ giúp
+
+File mock data còn cung cấp các hàm tiện ích để truy vấn dữ liệu:
+
+```typescript
+// Lấy nhà cung cấp theo ID
+getSupplierById(id: string | number): Supplier | undefined
+
+// Lấy danh sách người liên hệ theo nhà cung cấp
+getContactsBySupplier(supplierId: string | number): SupplierContact[]
+
+// Lấy danh sách hợp đồng theo nhà cung cấp
+getContractsBySupplier(supplierId: string | number): SupplierContract[]
+
+// Lấy danh sách thanh toán theo hợp đồng
+getPaymentsByContract(contractId: string | number): SupplierContractPayment[]
+
+// Lấy danh sách giao dịch theo nhà cung cấp
+getTransactionsBySupplier(supplierId: string | number): SupplierTransaction[]
+
+// Lấy danh sách đánh giá theo nhà cung cấp
+getRatingsBySupplier(supplierId: string | number): SupplierRating[]
+```
+
+## 3. Sử dụng trong form demo
+
+File `src/app/suppliers/demo.tsx` đã được thiết lập để sử dụng mock data trong các form. Khi truy cập trang demo (từ `/suppliers` click vào nút "Form Demo"), bạn sẽ thấy:
+
+1. Form được pre-populated với dữ liệu mẫu
+2. Phần bên phải hiển thị dữ liệu mẫu hiện đang được sử dụng
+3. Các tác vụ "Thêm mới" hoặc "Cập nhật" chỉ mô phỏng việc lưu dữ liệu, không thực sự ghi vào cơ sở dữ liệu
+
+## 4. Sử dụng trong trang chi tiết
+
+Trang chi tiết nhà cung cấp (`src/app/suppliers/show/[id]/page.tsx`) cũng đã được tích hợp mock data. Khi một nhà cung cấp không tồn tại trong cơ sở dữ liệu, hệ thống sẽ tự động chuyển sang sử dụng dữ liệu mẫu và hiển thị nhãn "Đang dùng dữ liệu mẫu".
+
+Các thao tác trên trang chi tiết khi dùng mock data:
+- Thêm giao dịch
+- Thêm đánh giá
+- Thêm hợp đồng
+- Thêm thanh toán
+
+đều hoạt động như trên dữ liệu thật nhưng không lưu vào cơ sở dữ liệu.
+
+## 5. Mở rộng mock data
+
+Để thêm hoặc chỉnh sửa dữ liệu mẫu, bạn có thể trực tiếp chỉnh sửa file `src/mock/suppliers.ts`. Lưu ý đảm bảo tính nhất quán giữa các loại dữ liệu (ví dụ: các ID phải khớp nhau giữa các bảng liên quan).
+
+```typescript
+// Thêm nhà cung cấp mới
+mockSuppliers.push({
+  id: '6',
+  code: 'SUP006',
+  name: 'Nhà cung cấp mới',
+  // ... các trường khác
+});
+
+// Thêm người liên hệ mới
+mockSupplierContacts.push({
+  id: '6',
+  supplier_id: '6', // Liên kết với nhà cung cấp mới tạo
+  name: 'Người liên hệ mới',
+  // ... các trường khác
+});
+``` 

@@ -2,6 +2,7 @@
 
 import type { AuthProvider } from "@refinedev/core";
 import { supabaseBrowserClient } from "@utils/supabase/client";
+import { UserRole } from "@utils/supabase/constants";
 
 export const authProviderClient: AuthProvider = {
   login: async ({ email, password }) => {
@@ -67,6 +68,18 @@ export const authProviderClient: AuthProvider = {
       }
 
       if (data) {
+        // Thêm mới người dùng với vai trò mặc định
+        const { error: roleError } = await supabaseBrowserClient
+          .from("user_roles")
+          .insert({
+            user_id: data.user?.id,
+            role: UserRole.PRODUCTION, // Vai trò mặc định khi đăng ký
+          });
+
+        if (roleError) {
+          console.error("Không thể thiết lập vai trò mặc định:", roleError);
+        }
+
         return {
           success: true,
           redirectTo: "/",
@@ -111,10 +124,22 @@ export const authProviderClient: AuthProvider = {
     };
   },
   getPermissions: async () => {
-    const user = await supabaseBrowserClient.auth.getUser();
+    const { data: userData } = await supabaseBrowserClient.auth.getUser();
+    
+    if (userData?.user) {
+      // Lấy vai trò của người dùng từ bảng user_roles
+      const { data: roleData, error } = await supabaseBrowserClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userData.user.id)
+        .single();
 
-    if (user) {
-      return user.data.user?.role;
+      if (error) {
+        console.error("Không thể lấy thông tin vai trò:", error);
+        return null;
+      }
+
+      return roleData?.role;
     }
 
     return null;
@@ -123,9 +148,17 @@ export const authProviderClient: AuthProvider = {
     const { data } = await supabaseBrowserClient.auth.getUser();
 
     if (data?.user) {
+      // Lấy thêm thông tin vai trò
+      const { data: roleData } = await supabaseBrowserClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.user.id)
+        .single();
+
       return {
         ...data.user,
         name: data.user.email,
+        role: roleData?.role,
       };
     }
 
