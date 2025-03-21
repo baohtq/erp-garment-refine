@@ -313,7 +313,7 @@ export const mockInventory: FabricInventory[] = [
     location: "Kho A - Kệ A1",
     status: "available",
     color_code: "#000000",
-    image_url: "https://images.unsplash.com/photo-1600045618548-1df34bfce0dc?q=80&w=200&auto=format&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1580418827493-f2fb2fa8910c?q=80&w=200&auto=format&fit=crop",
     created_at: "2023-03-05T09:00:00Z",
     updated_at: "2023-03-05T09:00:00Z"
   },
@@ -332,7 +332,7 @@ export const mockInventory: FabricInventory[] = [
     location: "Kho A - Kệ A1",
     status: "available",
     color_code: "#0d0d0d",
-    image_url: "https://images.unsplash.com/photo-1617440168937-c6497eaa8db5?q=80&w=200&auto=format&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1595515106864-077d54b1619c?q=80&w=200&auto=format&fit=crop",
     created_at: "2023-03-05T09:15:00Z",
     updated_at: "2023-03-05T09:15:00Z"
   },
@@ -351,7 +351,7 @@ export const mockInventory: FabricInventory[] = [
     location: "Kho A - Kệ B2",
     status: "available",
     color_code: "#0a3b78",
-    image_url: "https://images.unsplash.com/photo-1541429403585-811b7ede9f32?q=80&w=200&auto=format&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1583265627959-fb7042f5133b?q=80&w=200&auto=format&fit=crop",
     created_at: "2023-03-10T10:30:00Z",
     updated_at: "2023-03-10T10:30:00Z"
   },
@@ -370,7 +370,7 @@ export const mockInventory: FabricInventory[] = [
     location: "Kho B - Kệ C1",
     status: "reserved",
     color_code: "#ffffff",
-    image_url: "https://images.unsplash.com/photo-1528459061998-56fd57ad86e3?q=80&w=200&auto=format&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1584589167171-541ce45f1eea?q=80&w=200&auto=format&fit=crop",
     created_at: "2023-03-15T14:00:00Z",
     updated_at: "2023-03-15T14:00:00Z"
   },
@@ -389,7 +389,7 @@ export const mockInventory: FabricInventory[] = [
     location: "Kho B - Kệ D3",
     status: "in_use",
     color_code: "#808080",
-    image_url: "https://images.unsplash.com/photo-1564500601744-b4dbb1d60277?q=80&w=200&auto=format&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=200&auto=format&fit=crop",
     created_at: "2023-03-20T11:30:00Z",
     updated_at: "2023-03-20T11:30:00Z"
   },
@@ -408,7 +408,7 @@ export const mockInventory: FabricInventory[] = [
     location: "Kho C - Kệ E1",
     status: "available",
     color_code: "#d2b48c",
-    image_url: "https://images.unsplash.com/photo-1600075873274-748a93d61cbd?q=80&w=200&auto=format&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1621273574341-14cf448be06f?q=80&w=200&auto=format&fit=crop",
     created_at: "2023-03-25T13:45:00Z",
     updated_at: "2023-03-25T13:45:00Z"
   }

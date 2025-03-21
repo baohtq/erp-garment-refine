@@ -4,6 +4,32 @@ export const resources = [
     list: "/",
   },
   {
+    name: "users",
+    list: "/users",
+    meta: {
+      label: "Quản lý người dùng",
+      icon: "users",
+      description: "Quản lý tài khoản người dùng và phân quyền",
+      canDelete: false,
+      accessControl: {
+        roles: ["admin"]
+      }
+    }
+  },
+  {
+    name: "settings",
+    list: "/settings",
+    meta: {
+      label: "Cài đặt hệ thống",
+      icon: "settings",
+      description: "Cấu hình và thiết lập hệ thống",
+      canDelete: false,
+      accessControl: {
+        roles: ["admin"]
+      }
+    }
+  },
+  {
     name: "fabrics",
     list: "/fabric-management",
     meta: {

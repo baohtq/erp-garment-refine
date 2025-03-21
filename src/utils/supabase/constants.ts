@@ -43,12 +43,13 @@ export enum Priority {
 
 // Các vai trò người dùng
 export enum UserRole {
-  ADMIN = "admin",
-  MANAGER = "manager",
-  PRODUCTION = "production",
-  WAREHOUSE = "warehouse",
-  HR = "hr",
-  QUALITY = "quality",
+  ADMIN = "admin",          // Quản trị viên - quyền cao nhất
+  MANAGER = "manager",      // Quản lý - quản lý chung nhưng không thể đổi cấu hình hệ thống
+  INVENTORY = "inventory",  // Nhân viên kho - chỉ quản lý kho và nguyên vật liệu
+  PRODUCTION = "production", // Nhân viên sản xuất - quản lý quy trình sản xuất 
+  SALES = "sales",          // Nhân viên kinh doanh - quản lý đơn hàng và khách hàng
+  STAFF = "staff",          // Nhân viên thông thường - chỉ xem và thực hiện các tác vụ cơ bản
+  GUEST = "guest"           // Khách - chỉ xem một số thông tin công khai
 }
 
 // Các trạng thái cho kho vải
@@ -73,6 +74,54 @@ export enum InventoryCheckStatus {
   IN_PROGRESS = "in-progress",
   COMPLETED = "completed",
 }
+
+// Định nghĩa quyền thao tác trong hệ thống
+export enum Permission {
+  // Quyền chung
+  VIEW = "view",           // Xem thông tin
+  CREATE = "create",       // Tạo mới
+  EDIT = "edit",           // Chỉnh sửa
+  DELETE = "delete",       // Xóa
+  EXPORT = "export",       // Xuất dữ liệu
+  
+  // Quyền đặc biệt
+  APPROVE = "approve",     // Phê duyệt (đơn hàng, yêu cầu...)
+  REJECT = "reject",       // Từ chối 
+  MANAGE_USERS = "manage_users", // Quản lý người dùng
+  CONFIGURE_SYSTEM = "configure_system" // Cấu hình hệ thống
+}
+
+// Định nghĩa ánh xạ vai trò - quyền
+export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+  [UserRole.ADMIN]: [
+    Permission.VIEW, Permission.CREATE, Permission.EDIT, Permission.DELETE, 
+    Permission.EXPORT, Permission.APPROVE, Permission.REJECT,
+    Permission.MANAGE_USERS, Permission.CONFIGURE_SYSTEM
+  ],
+  [UserRole.MANAGER]: [
+    Permission.VIEW, Permission.CREATE, Permission.EDIT, Permission.DELETE,
+    Permission.EXPORT, Permission.APPROVE, Permission.REJECT
+  ],
+  [UserRole.INVENTORY]: [
+    Permission.VIEW, Permission.CREATE, Permission.EDIT, 
+    Permission.EXPORT, Permission.APPROVE, Permission.REJECT
+  ],
+  [UserRole.PRODUCTION]: [
+    Permission.VIEW, Permission.CREATE, Permission.EDIT, 
+    Permission.EXPORT, Permission.APPROVE, Permission.REJECT
+  ],
+  [UserRole.SALES]: [
+    Permission.VIEW, Permission.CREATE, Permission.EDIT,
+    Permission.EXPORT, Permission.APPROVE, Permission.REJECT
+  ],
+  [UserRole.STAFF]: [
+    Permission.VIEW, Permission.CREATE,
+    Permission.EXPORT
+  ],
+  [UserRole.GUEST]: [
+    Permission.VIEW
+  ]
+};
 
 // Các bảng Supabase
 export const TABLES = {

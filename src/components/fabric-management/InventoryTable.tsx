@@ -80,7 +80,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
         accessorKey: 'quantity',
         cell: info => (
           <span className="text-sm">
-            {(info.getValue() as number).toLocaleString('vi-VN')} m
+            {(info.getValue() ? (info.getValue() as number).toLocaleString('vi-VN') : '0')} m
           </span>
         ),
       },

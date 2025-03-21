@@ -181,6 +181,35 @@
   .card-footer {
     @apply px-6 py-4 border-t border-gray-200 dark:border-gray-700;
   }
+
+  /* Sidebar styling */
+  .sidebar {
+    @apply fixed bottom-0 left-0 top-0 z-20 w-64 bg-gray-800 pt-16 overflow-hidden;
+  }
+
+  .sidebar-content {
+    @apply h-full overflow-y-auto px-3 py-4 scrollbar-thin;
+  }
+
+  .sidebar-link {
+    @apply flex items-center rounded-lg px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors;
+  }
+
+  .sidebar-link-active {
+    @apply bg-gray-700 text-white;
+  }
+
+  .sidebar-icon {
+    @apply mr-3 h-5 w-5;
+  }
+
+  .sidebar-section {
+    @apply mt-8 border-t border-gray-700 pt-4;
+  }
+
+  .sidebar-heading {
+    @apply mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-gray-400;
+  }
 }
 
 /* Custom scrollbar */
@@ -223,4 +252,20 @@
   .dark ::-webkit-scrollbar-thumb:hover {
     background-color: #718096;
   }
+}
+
+/* Fix for sidebar menu */
+aside.fixed.z-20.h-full.w-64 {
+  overflow-y: auto;
+}
+
+aside .space-y-2 {
+  overflow-y: auto;
+  max-height: calc(100vh - 4rem);
+  padding-bottom: 2rem;
+}
+
+ul.space-y-2 {
+  list-style-type: none;
+  padding-left: 0;
 }

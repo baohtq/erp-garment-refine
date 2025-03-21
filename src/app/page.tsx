@@ -2,423 +2,409 @@
 
 import React, { useEffect, useState } from "react";
 import { RefineClient } from "./client";
-import AppLayout from "@/components/layout/AppLayout";
-import Todo from "@/components/Todo";
+import Link from "next/link";
+import { useUserRole } from "@/hooks/useUserRole";
+import { supabaseBrowserClient } from "@/utils/supabase/client";
 
-export default function Dashboard() {
+const Page = () => {
   const [isClient, setIsClient] = useState(false);
-  const [stats, setStats] = useState({
-    ordersPending: 5,
-    ordersInProgress: 24,
-    ordersCompleted: 18,
-    materialLow: 5,
-    employees: 120,
-    revenueMonth: "1.2 tỷ",
-  });
+  const { isAdmin, loading, role } = useUserRole();
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [sessionStatus, setSessionStatus] = useState<string>('Đang kiểm tra phiên đăng nhập...');
 
   useEffect(() => {
     setIsClient(true);
-    // Trong tương lai sẽ fetch dữ liệu từ API
+    
+    // Kiểm tra session
+    const checkSession = async () => {
+      try {
+        const { data, error } = await supabaseBrowserClient.auth.getSession();
+        if (error) {
+          console.error("Lỗi khi kiểm tra phiên đăng nhập:", error);
+          setSessionStatus('Lỗi khi kiểm tra phiên đăng nhập');
+          return;
+        }
+        
+        if (!data.session) {
+          console.log("Người dùng chưa đăng nhập");
+          setSessionStatus('Chưa đăng nhập');
+          window.location.href = "/login";
+          return;
+        }
+        
+        setSessionStatus('Đã đăng nhập');
+      } catch (err) {
+        console.error("Lỗi khi kiểm tra phiên đăng nhập:", err);
+        setSessionStatus('Lỗi khi kiểm tra phiên đăng nhập');
+      } finally {
+        setCheckingSession(false);
+      }
+    };
+    
+    checkSession();
   }, []);
 
-  if (!isClient) {
+  if (!isClient || checkingSession) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-500"></div>
+      <div className="flex min-h-screen flex-col items-center justify-center">
+        <div className="text-center">
+          <svg className="mx-auto h-12 w-12 animate-spin text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="mt-2 text-lg font-medium text-gray-900">Đang tải...</p>
+          <p className="mt-1 text-sm text-gray-500">{sessionStatus}</p>
+        </div>
       </div>
     );
   }
 
   return (
     <RefineClient>
-      <AppLayout>
-        <div className="space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Tổng quan</h1>
-            <div className="flex gap-2">
-              <button className="btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+      <Dashboard />
+    </RefineClient>
+  );
+};
+
+const Dashboard = () => {
+  const [stats, setStats] = useState({
+    orders: 47,
+    lowStock: 5,
+    employees: 120,
+    revenue: "1.2 tỷ",
+    growthPercent: 12.5,
+    efficiency: 85
+  });
+
+  return (
+    <div className="container mx-auto p-6">
+      <h1 className="mb-6 text-2xl font-bold">Tổng quan</h1>
+      
+      {/* Stats Grid */}
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {/* Đơn hàng */}
+        <div className="rounded-lg border bg-white p-6 shadow-sm">
+          <div className="flex items-center">
+            <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
+              <svg className="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Đơn hàng</p>
+              <p className="text-3xl font-bold">{stats.orders}</p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-md bg-yellow-50 py-1 px-2">
+                <p className="text-lg font-semibold text-yellow-600">5</p>
+                <p className="text-xs text-yellow-600">Chờ xử lý</p>
+              </div>
+              <div className="rounded-md bg-blue-50 py-1 px-2">
+                <p className="text-lg font-semibold text-blue-600">24</p>
+                <p className="text-xs text-blue-600">Đang SX</p>
+              </div>
+              <div className="rounded-md bg-green-50 py-1 px-2">
+                <p className="text-lg font-semibold text-green-600">18</p>
+                <p className="text-xs text-green-600">Hoàn thành</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Vật tư tồn kho thấp */}
+        <div className="rounded-lg border bg-white p-6 shadow-sm">
+          <div className="flex items-center">
+            <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
+              <svg className="h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Vật tư tồn kho thấp</p>
+              <p className="text-3xl font-bold">{stats.lowStock}</p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <Link
+              href="/inventory"
+              className="flex items-center justify-center rounded-md bg-red-600 py-2 px-4 text-sm font-medium text-white hover:bg-red-700"
+            >
+              <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Xem danh sách
+            </Link>
+          </div>
+        </div>
+        
+        {/* Nhân viên */}
+        <div className="rounded-lg border bg-white p-6 shadow-sm">
+          <div className="flex items-center">
+            <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50">
+              <svg className="h-6 w-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Nhân viên</p>
+              <p className="text-3xl font-bold">{stats.employees}</p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <p className="mb-1 text-sm font-medium text-gray-500">Hiệu suất</p>
+            <div className="h-2 w-full rounded-full bg-gray-200">
+              <div
+                className="h-2 rounded-full bg-indigo-500"
+                style={{ width: `${stats.efficiency}%` }}
+              ></div>
+            </div>
+            <p className="mt-1 text-right text-sm font-medium text-indigo-600">{stats.efficiency}%</p>
+          </div>
+        </div>
+        
+        {/* Doanh thu */}
+        <div className="rounded-lg border bg-white p-6 shadow-sm">
+          <div className="flex items-center">
+            <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-50">
+              <svg className="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Doanh thu tháng</p>
+              <p className="text-3xl font-bold">{stats.revenue}</p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <p className="flex items-center text-sm font-medium text-gray-500">
+              So với tháng trước
+              <span className="ml-1 flex items-center text-green-600">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
                 </svg>
-                Đơn hàng mới
-              </button>
-              <button className="btn-secondary">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                Lọc
-              </button>
+                +{stats.growthPercent}%
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Đơn hàng gần đây và tiến độ sản xuất */}
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Đơn hàng gần đây */}
+        <div className="rounded-lg border bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Đơn hàng sản xuất gần đây</h2>
+            <Link href="/production-orders" className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800">
+              <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Xem tất cả
+            </Link>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="py-2 text-left text-xs font-medium uppercase text-gray-500">Mã đơn</th>
+                  <th className="py-2 text-left text-xs font-medium uppercase text-gray-500">Sản phẩm</th>
+                  <th className="py-2 text-left text-xs font-medium uppercase text-gray-500">Số lượng</th>
+                  <th className="py-2 text-left text-xs font-medium uppercase text-gray-500">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-3 text-sm">PO-2023-001</td>
+                  <td className="py-3 text-sm">Áo sơ mi nam</td>
+                  <td className="py-3 text-sm">500</td>
+                  <td className="py-3 text-sm">
+                    <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+                      Đang sản xuất
+                    </span>
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-3 text-sm">PO-2023-002</td>
+                  <td className="py-3 text-sm">Quần jean nữ</td>
+                  <td className="py-3 text-sm">300</td>
+                  <td className="py-3 text-sm">
+                    <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                      Hoàn thành
+                    </span>
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-3 text-sm">PO-2023-003</td>
+                  <td className="py-3 text-sm">Áo khoác mùa đông</td>
+                  <td className="py-3 text-sm">200</td>
+                  <td className="py-3 text-sm">
+                    <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+                      Chờ xử lý
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="mt-4 text-center">
+            <button className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              <svg className="mr-2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Tạo đơn hàng mới
+            </button>
+          </div>
+        </div>
+        
+        {/* Tiến độ sản xuất */}
+        <div className="rounded-lg border bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Tiến độ sản xuất</h2>
+            <Link href="/production-progress" className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800">
+              <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+              Xem chi tiết
+            </Link>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-sm font-medium">PO-2023-001: Áo sơ mi nam</span>
+                <span className="text-xs font-medium text-gray-500">70%</span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-gray-200">
+                <div className="h-2 rounded-full bg-blue-600" style={{ width: "70%" }}></div>
+              </div>
+            </div>
+            
+            <div>
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-sm font-medium">PO-2023-004: Váy dạ hội</span>
+                <span className="text-xs font-medium text-gray-500">45%</span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-gray-200">
+                <div className="h-2 rounded-full bg-purple-600" style={{ width: "45%" }}></div>
+              </div>
+            </div>
+            
+            <div>
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-sm font-medium">PO-2023-005: Áo thun in logo</span>
+                <span className="text-xs font-medium text-gray-500">90%</span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-gray-200">
+                <div className="h-2 rounded-full bg-blue-600" style={{ width: "90%" }}></div>
+              </div>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Thống kê đơn hàng */}
-            <div className="card hover:shadow-md">
-              <div className="card-body">
-                <div className="flex items-center">
-                  <div className="flex items-center justify-center p-3 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mr-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Đơn hàng</p>
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">{stats.ordersPending + stats.ordersInProgress + stats.ordersCompleted}</h3>
-                  </div>
-                </div>
-                <div className="mt-6 grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1.5 rounded-lg">
-                    <div className="text-lg font-semibold text-yellow-600 dark:text-yellow-400">{stats.ordersPending}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Chờ xử lý</div>
-                  </div>
-                  <div className="bg-blue-50 dark:bg-blue-900/20 px-2 py-1.5 rounded-lg">
-                    <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">{stats.ordersInProgress}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Đang SX</div>
-                  </div>
-                  <div className="bg-green-50 dark:bg-green-900/20 px-2 py-1.5 rounded-lg">
-                    <div className="text-lg font-semibold text-green-600 dark:text-green-400">{stats.ordersCompleted}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Hoàn thành</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Vật tư */}
-            <div className="card hover:shadow-md">
-              <div className="card-body">
-              <div className="flex items-center">
-                  <div className="flex items-center justify-center p-3 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 mr-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Vật tư tồn kho thấp</p>
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">{stats.materialLow}</h3>
-                  </div>
-                </div>
-                <div className="mt-6">
-                  <button className="btn-danger w-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    Xem danh sách
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Nhân viên */}
-            <div className="card hover:shadow-md">
-              <div className="card-body">
-                <div className="flex items-center">
-                  <div className="flex items-center justify-center p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 mr-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Nhân viên</p>
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">{stats.employees}</h3>
-                  </div>
-                </div>
-                <div className="mt-6 flex flex-col">
-                  <div className="flex justify-between items-center text-sm mb-1">
-                    <span className="text-gray-600 dark:text-gray-300">Hiệu suất</span>
-                    <span className="font-medium text-indigo-600 dark:text-indigo-400">85%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full" style={{ width: "85%" }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Doanh thu */}
-            <div className="card hover:shadow-md">
-              <div className="card-body">
-              <div className="flex items-center">
-                  <div className="flex items-center justify-center p-3 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 mr-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Doanh thu tháng</p>
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">{stats.revenueMonth}</h3>
-                  </div>
-                </div>
-                <div className="mt-6">
-                  <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">So với tháng trước</div>
-                  <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
-                    </svg>
-                    <span className="font-medium">+12.5%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Các phần tử tiếp theo */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Đơn hàng gần đây */}
-            <div className="card">
-              <div className="card-header flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Đơn hàng sản xuất gần đây</h3>
-                <button className="btn-sm btn-secondary">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  Xem tất cả
-                </button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-700/50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Mã đơn
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Sản phẩm
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Số lượng
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Trạng thái
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-white">
-                        PO-2023-001
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                        Áo sơ mi nam
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                        500
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="badge-blue">
-                          Đang sản xuất
-                        </span>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-white">
-                        PO-2023-002
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                        Quần jean nữ
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                        300
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="badge-green">
-                          Hoàn thành
-                        </span>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-white">
-                        PO-2023-003
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                        Áo khoác mùa đông
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                        200
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="badge-yellow">
-                          Chờ xử lý
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="card-footer text-center">
-                <button className="btn-secondary btn-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Tạo đơn hàng mới
-                </button>
-              </div>
-            </div>
-
-            {/* Tiến độ sản xuất */}
-            <div className="card">
-              <div className="card-header flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Tiến độ sản xuất</h3>
-                <button className="btn-sm btn-secondary">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  Xem chi tiết
-                </button>
-              </div>
-              <div className="card-body space-y-6">
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center">
-                      <span className="block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">PO-2023-001: Áo sơ mi nam</span>
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">70%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                    <div className="bg-blue-600 dark:bg-blue-500 h-2.5 rounded-full transition-all duration-500" style={{ width: "70%" }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center">
-                      <span className="block w-3 h-3 rounded-full bg-purple-500 mr-2"></span>
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">PO-2023-004: Váy dạ hội</span>
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">45%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                    <div className="bg-purple-600 dark:bg-purple-500 h-2.5 rounded-full transition-all duration-500" style={{ width: "45%" }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center">
-                      <span className="block w-3 h-3 rounded-full bg-indigo-500 mr-2"></span>
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">PO-2023-005: Áo thun in logo</span>
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">90%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                    <div className="bg-indigo-600 dark:bg-indigo-500 h-2.5 rounded-full transition-all duration-500" style={{ width: "90%" }}></div>
-                  </div>
-                </div>
-              </div>
-              <div className="card-footer flex justify-center">
-                <button className="btn-primary btn-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Cập nhật tiến độ
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Thêm một hàng mới cho các tính năng bổ sung */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Thống kê nhanh */}
-            <div className="card">
-              <div className="card-header">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Thống kê nhanh</h3>
-              </div>
-              <div className="card-body space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="h-9 w-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Nhân viên mới</p>
-                      <p className="font-medium text-gray-700 dark:text-gray-300">3 nhân viên</p>
-                    </div>
-                  </div>
-                  <button className="btn-sm btn-secondary w-20">Xem</button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="h-9 w-9 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Đơn hàng hoàn thành</p>
-                      <p className="font-medium text-gray-700 dark:text-gray-300">4 đơn hàng hôm nay</p>
-                    </div>
-                  </div>
-                  <button className="btn-sm btn-secondary w-20">Xem</button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="h-9 w-9 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mr-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Cảnh báo</p>
-                      <p className="font-medium text-gray-700 dark:text-gray-300">2 vấn đề cần xử lý</p>
-                    </div>
-                  </div>
-                  <button className="btn-sm btn-danger w-20">Xử lý</button>
-                </div>
-              </div>
-            </div>
-
-            {/* Hoạt động gần đây */}
-            <div className="card col-span-1 md:col-span-2">
-              <div className="card-header">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Hoạt động gần đây</h3>
-              </div>
-              <div className="card-body">
-                <div className="relative pl-6 border-l-2 border-gray-200 dark:border-gray-700 space-y-6">
-                  <div className="relative">
-                    <span className="absolute -left-[21px] h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </span>
-                    <div className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Đơn hàng PO-2023-002 đã hoàn thành</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">20 phút trước - Phạm Văn A</div>
-                  </div>
-                  <div className="relative">
-                    <span className="absolute -left-[21px] h-6 w-6 rounded-full bg-indigo-500 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                    </span>
-                    <div className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Nhập kho 500 mét vải cotton</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">1 giờ trước - Nguyễn Thị B</div>
-                  </div>
-                  <div className="relative">
-                    <span className="absolute -left-[21px] h-6 w-6 rounded-full bg-yellow-500 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                    </span>
-                    <div className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Cảnh báo tồn kho thấp: Cúc áo 4 lỗ</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">3 giờ trước - Hệ thống</div>
-                  </div>
-                </div>
-              </div>
-              <div className="card-footer">
-                <button className="btn-secondary w-full">Xem tất cả hoạt động</button>
-              </div>
-            </div>
-          </div>
-
-          {/* Thêm component Todo */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Todo />
+          <div className="mt-4 text-right">
+            <button className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+              Cập nhật tiến độ
+            </button>
           </div>
         </div>
-      </AppLayout>
-    </RefineClient>
+      </div>
+      
+      {/* Thống kê nhanh và hoạt động gần đây */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Thống kê nhanh */}
+        <div className="rounded-lg border bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold">Thống kê nhanh</h2>
+          
+          <div className="space-y-4">
+            <div className="flex items-center border-b pb-3">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-500">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Nhân viên mới</p>
+                <p className="text-lg font-medium">3 nhân viên</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center border-b pb-3">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-500">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Đơn hàng hoàn thành</p>
+                <p className="text-lg font-medium">4 đơn hàng hôm nay</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-500">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Cảnh báo</p>
+                <p className="text-lg font-medium">2 vấn đề cần xử lý</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Hoạt động gần đây */}
+        <div className="rounded-lg border bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold">Hoạt động gần đây</h2>
+          
+          <div className="space-y-4">
+            <div className="flex items-start">
+              <div className="mr-3 mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white">
+                <span className="text-xs font-bold">P</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Đơn hàng PO-2023-002 đã hoàn thành</p>
+                <p className="text-xs text-gray-500">20 phút trước - Phạm Văn A</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start">
+              <div className="mr-3 mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white">
+                <span className="text-xs font-bold">N</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Nhập kho 500 mét vải cotton</p>
+                <p className="text-xs text-gray-500">1 giờ trước - Nguyễn Thị B</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start">
+              <div className="mr-3 mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white">
+                <span className="text-xs font-bold">C</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Cảnh báo tồn kho thấp: Cúc áo 4 lỗ</p>
+                <p className="text-xs text-gray-500">2 giờ trước - Hệ thống</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-4 text-center">
+            <button className="text-sm font-medium text-gray-600 hover:text-gray-900">
+              Xem thêm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
-}
+};
+
+export default Page;
 

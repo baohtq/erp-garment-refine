@@ -2,7 +2,7 @@
 
 import type { AuthProvider } from "@refinedev/core";
 import { supabaseBrowserClient } from "@utils/supabase/client";
-import { UserRole } from "@utils/supabase/constants";
+import { UserRole, Permission, ROLE_PERMISSIONS } from "@utils/supabase/constants";
 import { resources } from "../../app/resources";
 
 // Mở rộng AuthProvider interface để bao gồm phương thức can
@@ -17,6 +17,78 @@ interface ExtendedAuthProvider extends AuthProvider {
 // Hàm để lấy danh sách resources
 const getResources = async () => {
   return resources;
+};
+
+// Kiểm tra vai trò người dùng hiện tại
+const getCurrentUserRole = async (): Promise<UserRole> => {
+  try {
+    const { data: { user } } = await supabaseBrowserClient.auth.getUser();
+    
+    if (!user) return UserRole.GUEST;
+    
+    // Lấy thông tin về vai trò từ metadata của user
+    const userRole = user.user_metadata?.role as UserRole;
+    
+    // Nếu không có role trong metadata, kiểm tra trong database
+    if (!userRole) {
+      const { data, error } = await supabaseBrowserClient
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      if (error || !data) return UserRole.GUEST;
+      
+      return data.role as UserRole || UserRole.GUEST;
+    }
+    
+    return userRole;
+  } catch (error) {
+    console.error("Error getting user role:", error);
+    return UserRole.GUEST;
+  }
+};
+
+// Danh sách các resource đặc biệt và quyền cần thiết
+const RESOURCE_PERMISSIONS: Record<string, Record<string, Permission[]>> = {
+  'users': {
+    'list': [Permission.MANAGE_USERS],
+    'create': [Permission.MANAGE_USERS],
+    'edit': [Permission.MANAGE_USERS],
+    'show': [Permission.MANAGE_USERS],
+    'delete': [Permission.MANAGE_USERS],
+  },
+  'settings': {
+    'list': [Permission.CONFIGURE_SYSTEM],
+    'create': [Permission.CONFIGURE_SYSTEM],
+    'edit': [Permission.CONFIGURE_SYSTEM],
+    'show': [Permission.CONFIGURE_SYSTEM],
+    'delete': [Permission.CONFIGURE_SYSTEM],
+  }
+};
+
+// Map action từ Refine sang Permission
+const mapActionToPermission = (action: string): Permission => {
+  switch (action) {
+    case 'list':
+    case 'show':
+      return Permission.VIEW;
+    case 'create':
+      return Permission.CREATE;
+    case 'edit':
+    case 'update':
+      return Permission.EDIT;
+    case 'delete':
+      return Permission.DELETE;
+    case 'export':
+      return Permission.EXPORT;
+    case 'approve':
+      return Permission.APPROVE;
+    case 'reject':
+      return Permission.REJECT;
+    default:
+      return Permission.VIEW;
+  }
 };
 
 export const authProviderClient: ExtendedAuthProvider = {
@@ -206,113 +278,35 @@ export const authProviderClient: ExtendedAuthProvider = {
   },
   can: async ({ resource, action, params }) => {
     try {
-      // Lấy thông tin người dùng và vai trò từ session
-      const { data: userData } = await supabaseBrowserClient.auth.getUser();
-      
-      if (!userData?.user) {
-        return { can: false };
+      // Nếu không có resource hoặc action, cho phép mặc định
+      if (!resource || !action) {
+        return { can: true };
       }
+
+      const userRole = await getCurrentUserRole();
       
-      // Lấy vai trò của người dùng
-      const { data: roleData, error: roleError } = await supabaseBrowserClient
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userData.user.id)
-        .single();
-        
-      if (roleError) {
-        console.error("Không thể lấy thông tin vai trò:", roleError);
-        return { can: false };
-      }
-      
-      const userRole = roleData?.role;
-      
-      // Kiểm tra quyền dựa trên vai trò
-      // ADMIN có quyền làm mọi thứ
+      // Nếu là admin, cho phép mọi action
       if (userRole === UserRole.ADMIN) {
         return { can: true };
       }
       
-      // Quyền xem là mặc định cho mọi người dùng đã đăng nhập
-      if (action === "list" || action === "show") {
-        return { can: true };
+      // Lấy danh sách quyền của role hiện tại
+      const userPermissions = ROLE_PERMISSIONS[userRole] || [];
+      
+      // Kiểm tra các resource đặc biệt
+      if (RESOURCE_PERMISSIONS[resource]?.[action]) {
+        const requiredPermissions = RESOURCE_PERMISSIONS[resource][action];
+        const hasAllPermissions = requiredPermissions.every(
+          (permission) => userPermissions.includes(permission)
+        );
+        return { can: hasAllPermissions };
       }
       
-      // Quyền chỉnh sửa và tạo mới dành cho MANAGER và các vai trò được chỉ định
-      if (action === "edit" || action === "create") {
-        // Kiểm tra quyền dựa trên resource và vai trò
-        if (userRole === UserRole.MANAGER) {
-          // Manager có thể chỉnh sửa hầu hết các tài nguyên, trừ user_roles
-          if (resource !== "user_roles") {
-            return { can: true };
-          }
-        }
-        
-        // WAREHOUSE có thể chỉnh sửa inventory và fabric-related
-        if (userRole === UserRole.WAREHOUSE) {
-          const warehouseResources = [
-            "fabrics", 
-            "fabric_inventory", 
-            "fabric_issues",
-            "inventory_checks"
-          ];
-          
-          if (warehouseResources.includes(resource || "")) {
-            return { can: true };
-          }
-        }
-        
-        // PRODUCTION có thể chỉnh sửa production-related
-        if (userRole === UserRole.PRODUCTION) {
-          const productionResources = [
-            "cutting_orders", 
-            "production-orders", 
-            "production-stages", 
-            "production-progress"
-          ];
-          
-          if (productionResources.includes(resource || "")) {
-            return { can: true };
-          }
-        }
-        
-        // HR có thể chỉnh sửa employee-related
-        if (userRole === UserRole.HR) {
-          const hrResources = ["employees", "employee-productivity"];
-          
-          if (hrResources.includes(resource || "")) {
-            return { can: true };
-          }
-        }
-        
-        // QUALITY có thể chỉnh sửa quality-related
-        if (userRole === UserRole.QUALITY) {
-          const qualityResources = [
-            "quality_control_records", 
-            "quality_defects"
-          ];
-          
-          if (qualityResources.includes(resource || "")) {
-            return { can: true };
-          }
-        }
-      }
-      
-      // Xóa chỉ dành cho ADMIN và MANAGER
-      if (action === "delete") {
-        // Kiểm tra nếu resource cho phép xóa (dựa vào meta.canDelete)
-        const resourcesList = await getResources();
-        const resourceMeta = resourcesList.find(r => r.name === resource)?.meta;
-        
-        if (userRole === UserRole.MANAGER && resourceMeta?.canDelete) {
-          return { can: true };
-        }
-      }
-      
-      // Mặc định từ chối quyền
-      return { can: false };
+      // Với các resource thông thường, kiểm tra quyền tương ứng với action
+      const requiredPermission = mapActionToPermission(action);
+      return { can: userPermissions.includes(requiredPermission) };
     } catch (error) {
-      console.error("Lỗi khi kiểm tra quyền:", error);
+      console.error("Error checking permissions:", error);
       return { can: false };
     }
   },
