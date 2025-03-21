@@ -2,8 +2,8 @@
 
 import { DataProvider } from "@refinedev/core";
 import { dataProvider as dataProviderSupabase } from "@refinedev/supabase";
-import { supabaseBrowserClient } from "@utils/supabase/client";
-import { TABLES } from "@utils/supabase/constants";
+import { supabaseBrowserClient } from "@/utils/supabase/client";
+import { TABLES } from "@/utils/supabase/constants";
 
 // Định nghĩa interface mở rộng cho DataProvider
 interface CustomDataProvider extends DataProvider {

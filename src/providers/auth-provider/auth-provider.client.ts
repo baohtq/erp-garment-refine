@@ -1,9 +1,12 @@
 "use client";
 
 import type { AuthProvider } from "@refinedev/core";
-import { supabaseBrowserClient } from "@utils/supabase/client";
-import { UserRole, Permission, ROLE_PERMISSIONS } from "@utils/supabase/constants";
+import { supabaseBrowserClient, shouldUseMockData } from "@/utils/supabase/client";
+import { UserRole, Permission, ROLE_PERMISSIONS } from "@/utils/supabase/constants";
 import { resources } from "../../app/resources";
+
+// Biến cờ để bật chế độ demo, không cần xác thực
+const BYPASS_AUTH_FOR_DEMO = true;
 
 // Mở rộng AuthProvider interface để bao gồm phương thức can
 interface ExtendedAuthProvider extends AuthProvider {
@@ -188,6 +191,14 @@ export const authProviderClient: ExtendedAuthProvider = {
     };
   },
   check: async () => {
+    // Trong chế độ demo, luôn trả về đã xác thực
+    if (BYPASS_AUTH_FOR_DEMO || shouldUseMockData()) {
+      console.log("Authentication bypassed in client auth provider");
+      return {
+        authenticated: true
+      };
+    }
+    
     const { data, error } = await supabaseBrowserClient.auth.getUser();
     const { user } = data;
 

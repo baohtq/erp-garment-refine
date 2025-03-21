@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { RefineClient } from "./client";
 import Link from "next/link";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabaseBrowserClient } from "@/utils/supabase/client";
@@ -60,9 +59,7 @@ const Page = () => {
   }
 
   return (
-    <RefineClient>
-      <Dashboard />
-    </RefineClient>
+    <Dashboard />
   );
 };
 

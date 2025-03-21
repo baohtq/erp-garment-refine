@@ -1,4 +1,4 @@
-import { UserRole } from "@utils/supabase/constants";
+import { UserRole } from '@/utils/supabase/constants";
 
 // Interface mô tả dữ liệu người dùng
 export interface IUser {

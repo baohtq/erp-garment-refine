@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Layout } from "./index";
+import AppLayout from "@/components/layout/AppLayout";
 
 interface ClientMainProps {
   children: React.ReactNode;
@@ -9,8 +9,8 @@ interface ClientMainProps {
 
 export const ClientMain: React.FC<ClientMainProps> = ({ children }) => {
   return (
-    <Layout>
+    <AppLayout>
       {children}
-    </Layout>
+    </AppLayout>
   );
 }; 

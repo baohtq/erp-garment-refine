@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Supplier } from '@db/types';
-import { supabaseBrowserClient } from '@utils/supabase/client';
+import { Supplier } from '@/db/types';
+import { supabaseBrowserClient } from '@/utils/supabase/client';
 
 interface SupplierFormProps {
   supplier?: Partial<Supplier>;

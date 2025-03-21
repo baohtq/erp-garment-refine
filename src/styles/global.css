@@ -269,3 +269,29 @@ ul.space-y-2 {
   list-style-type: none;
   padding-left: 0;
 }
+
+.menu.error {
+  @apply flex items-center justify-center bg-gray-100 dark:bg-gray-800;
+}
+
+.menu-error {
+  @apply p-4 text-center;
+}
+
+.menu-error p {
+  @apply text-gray-500 dark:text-gray-400;
+}
+
+.menu-placeholder {
+  @apply w-64 bg-gray-100 dark:bg-gray-800 flex-shrink-0;
+}
+
+.menu-container {
+  @apply flex-shrink-0;
+}
+
+@media (max-width: 751px) {
+  .menu-placeholder {
+    @apply w-0;
+  }
+}

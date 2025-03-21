@@ -1,24 +1,29 @@
 import React, { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_KEY } from '@utils/supabase/constants';
 import { Product, Status, PRODUCT_CATEGORIES } from '@/types';
 // Sử dụng thư viện giả lập xlsx
-import xlsxShim from '@utils/xlsx-shim';
+import xlsxShim from '@/utils/xlsx-shim';
+import { toast } from 'react-toastify';
+import * as XLSX from 'xlsx';
 
 // Thử import thư viện gốc, nếu không có sẽ dùng thư viện giả lập
-let XLSX: any;
+let XLSX_shim: any;
 try {
   // @ts-ignore
-  XLSX = require('xlsx');
+  XLSX_shim = require('xlsx');
 } catch (error) {
   console.warn('Thư viện xlsx không được cài đặt. Sử dụng thư viện giả lập.');
-  XLSX = xlsxShim;
+  XLSX_shim = xlsxShim;
 }
 
 interface ImportExportProps {
   onImportSuccess: (products: Product[]) => void;
   products: Product[];
 }
+
+// Use environment variables directly
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -37,7 +42,7 @@ export default function ImportExport({ onImportSuccess, products }: ImportExport
 
     try {
       // Cảnh báo nếu đang sử dụng thư viện giả lập
-      if (XLSX === xlsxShim) {
+      if (XLSX_shim === xlsxShim) {
         setImportErrors(['Thư viện xlsx không được cài đặt. Vui lòng cài đặt để sử dụng chức năng import.']);
         setIsImporting(false);
         return;
@@ -106,7 +111,7 @@ export default function ImportExport({ onImportSuccess, products }: ImportExport
       // Cập nhật UI
       if (insertedData && insertedData.length > 0) {
         onImportSuccess(insertedData as Product[]);
-        alert(`Đã nhập thành công ${insertedData.length} sản phẩm`);
+        toast.success(`Đã nhập thành công ${insertedData.length} sản phẩm`);
       }
     } catch (error) {
       console.error('Error importing products:', error);
@@ -122,8 +127,8 @@ export default function ImportExport({ onImportSuccess, products }: ImportExport
 
     try {
       // Cảnh báo nếu đang sử dụng thư viện giả lập
-      if (XLSX === xlsxShim) {
-        alert('Thư viện xlsx không được cài đặt. Vui lòng cài đặt để sử dụng chức năng export.');
+      if (XLSX_shim === xlsxShim) {
+        toast.error('Thư viện xlsx không được cài đặt. Vui lòng cài đặt để sử dụng chức năng export.');
         setIsExporting(false);
         return;
       }
@@ -162,7 +167,7 @@ export default function ImportExport({ onImportSuccess, products }: ImportExport
       XLSX.writeFile(workbook, filename);
     } catch (error) {
       console.error('Error exporting products:', error);
-      alert('Có lỗi xảy ra khi xuất sản phẩm. Vui lòng thử lại.');
+      toast.error('Có lỗi xảy ra khi xuất sản phẩm. Vui lòng thử lại.');
     } finally {
       setIsExporting(false);
     }
@@ -183,8 +188,8 @@ export default function ImportExport({ onImportSuccess, products }: ImportExport
   // Tải template import
   const downloadTemplate = () => {
     // Cảnh báo nếu đang sử dụng thư viện giả lập
-    if (XLSX === xlsxShim) {
-      alert('Thư viện xlsx không được cài đặt. Vui lòng cài đặt để sử dụng chức năng tải mẫu nhập liệu.');
+    if (XLSX_shim === xlsxShim) {
+      toast.error('Thư viện xlsx không được cài đặt. Vui lòng cài đặt để sử dụng chức năng tải mẫu nhập liệu.');
       return;
     }
 

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "../styles/global.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ClientRefineProvider from "./client";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +23,9 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <body className={inter.className}>
-        {children}
+        <ClientRefineProvider>
+          {children}
+        </ClientRefineProvider>
         <ToastContainer
           position="top-right"
           autoClose={3000}

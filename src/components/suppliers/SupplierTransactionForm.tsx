@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SupplierTransaction } from '@db/types';
-import { supabaseBrowserClient } from '@utils/supabase/client';
+import { supabaseBrowserClient } from '@/utils/supabase/client';
 
 interface SupplierTransactionFormProps {
   supplierId: string | number;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { SupplierContact } from '@db/types';
-import { supabaseBrowserClient } from '@utils/supabase/client';
+import { SupplierContact } from '@/db/types';
+import { supabaseBrowserClient } from '@/utils/supabase/client';
 
 interface SupplierContactFormProps {
   supplierId: string | number;

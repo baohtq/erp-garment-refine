@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Product, Status, PRODUCT_CATEGORIES } from '@/types';
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_KEY } from '@utils/supabase/constants';
 import Image from 'next/image';
 
 interface ProductFormProps {
@@ -10,6 +9,9 @@ interface ProductFormProps {
   onCancel: () => void;
 }
 
+// Use environment variables directly
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export default function ProductForm({ product, onSave, onCancel }: ProductFormProps) {

@@ -1,5 +1,5 @@
-import { supabaseBrowserClient } from "@utils/supabase/client";
-import { UserRole } from "@utils/supabase/constants";
+import { supabaseBrowserClient } from '@/utils/supabase/client";
+import { UserRole } from '@/utils/supabase/constants";
 import { IRegisterData, IUpdateUserData, IUser } from "@/types/user";
 
 const TABLE_NAME = "users";

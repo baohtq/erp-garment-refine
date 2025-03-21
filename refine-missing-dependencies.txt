@@ -1,0 +1,59 @@
+# Hướng dẫn cài đặt các thư viện còn thiếu
+
+Dự án của bạn đang thiếu một số thư viện quan trọng của Refine để hoạt động đúng. Dưới đây là hướng dẫn cài đặt:
+
+## 1. Cài đặt Ant Design và các components
+
+```bash
+npm install antd @ant-design/icons @refinedev/antd --save
+```
+
+## 2. Cập nhật cấu hình Refine
+
+Sau khi cài đặt các thư viện trên, bạn cần cập nhật lại file:
+- `src/components/layout/RefineLayout.tsx` - Thay thế các components tạm thời bằng components từ @refinedev/antd
+- Xóa file `src/components/icons/index.tsx` khi đã cài đặt @ant-design/icons
+
+## 3. Cập nhật các lỗi API trong orderService và useUserRole
+
+Dựa vào phiên bản Refine bạn đang sử dụng (4.57.7), cần cập nhật API sử dụng:
+
+```typescript
+// Thay thế
+useQuery({...}) 
+
+// Bằng
+useList({...}) // cho get list
+useCreate() // cho create item
+useUpdate() // cho update item
+
+// Xem thêm trong document: https://refine.dev/docs/data/hooks/use-list/
+```
+
+## 4. Sửa lỗi TypeScript trong các trang Orders
+
+Thêm kiểu dữ liệu rõ ràng cho các biến trong hàm map():
+
+```typescript
+orders.map((order: Order) => { ... })
+items.map((item: OrderItem, index: number) => { ... })
+```
+
+## 5. Liên kết với thư viện theo dõi
+
+Dưới đây là danh sách các thư viện Refine đã được cài đặt trong dự án:
+
+- @refinedev/cli@2.16.44
+- @refinedev/core@4.57.7
+- @refinedev/devtools@1.2.14
+- @refinedev/kbar@1.3.16
+- @refinedev/nextjs-router@6.2.1
+- @refinedev/react-hook-form@4.9.3
+- @refinedev/react-table@5.6.15
+- @refinedev/supabase@5.9.6
+
+## 6. Tài liệu tham khảo
+
+- Tài liệu chính thức: https://refine.dev/docs/
+- Ví dụ sử dụng Ant Design: https://refine.dev/docs/examples/ant-design-example/
+- API Reference: https://refine.dev/docs/api-reference/ 

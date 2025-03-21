@@ -1,9 +1,11 @@
 import { CookieOptions, createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { SUPABASE_KEY, SUPABASE_URL } from "./constants";
+import { cookies, type UnsafeUnwrappedCookies } from "next/headers";
 
 export const createSupabaseServerClient = () => {
-  const cookieStore = cookies();
+  const cookieStore = (cookies() as unknown as UnsafeUnwrappedCookies);
+  
+  const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const SUPABASE_KEY = process.env.SUPABASE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
   return createServerClient(SUPABASE_URL, SUPABASE_KEY, {
     cookies: {

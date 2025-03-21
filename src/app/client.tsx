@@ -1,72 +1,70 @@
 "use client";
 
-import { Authenticated, Refine } from "@refinedev/core";
+import { Refine } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import React from "react";
+import { useEffect } from "react";
 
 import { dataProvider } from "@/providers/data-provider";
 import { authProvider } from "@/providers/auth-provider";
 import { notificationProvider } from "@/providers/notification-provider";
-
-import { ClientAuth, ClientMain } from "@/components/layout";
-import { DevtoolsPanel } from "@/components/devtools-panel";
-
 import routerProvider from "@/providers/router-provider";
 import { resources } from "./resources";
 
-interface RefineClientProps {
+// ErrorBoundary component để bắt lỗi trong quá trình render
+import { ErrorBoundary } from "@/components/error-boundary";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
+// Custom QueryClientProvider để lấy được queryClient
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
+
+export default function ClientRefineProvider({
+  children,
+}: {
   children: React.ReactNode;
-}
+}) {
+  const [queryClient] = useState(() => new QueryClient());
 
-export function RefineClient({ children }: RefineClientProps) {
-  // Tạo QueryClient trong component để tránh shared state giữa các requests
-  const [queryClient] = React.useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false,
-        retry: false,
-      },
-    },
-  }));
+  useEffect(() => {
+    if (queryClient) {
+      console.log("RefineClient mounted, QueryClient available:", !!queryClient);
+    }
+  }, [queryClient]);
 
-  // Dev mode check
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  // Clear authentication data from localStorage on startup for demo
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log("Demo mode: Clearing authentication data from localStorage");
+      localStorage.removeItem('erp-garment-auth');
+      localStorage.removeItem('supabase.auth.token');
+    }
+  }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <RefineKbarProvider>
-        <Refine
-          dataProvider={dataProvider}
-          notificationProvider={notificationProvider}
-          authProvider={authProvider}
-          routerProvider={routerProvider}
-          resources={resources}
-          options={{
-            syncWithLocation: true,
-            warnWhenUnsavedChanges: true,
-            projectId: "ErP-Garment-1",
-            disableTelemetry: true,
-          }}
-        >
-          <RefineKbar />
-          <ClientAuth>
-            {isDevelopment ? (
-              <ClientMain>{children}</ClientMain>
-            ) : (
-              <Authenticated
-                key="authenticated"
-                fallback={<div>Đang chuyển hướng...</div>}
-                loading={<div>Đang kiểm tra xác thực...</div>}
-              >
-                <ClientMain>{children}</ClientMain>
-              </Authenticated>
-            )}
-          </ClientAuth>
-        </Refine>
+        <ErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <ReactQueryDevtools initialIsOpen={false} />
+            <Refine
+              dataProvider={dataProvider}
+              notificationProvider={notificationProvider}
+              authProvider={authProvider}
+              routerProvider={routerProvider}
+              resources={resources}
+              options={{
+                syncWithLocation: true,
+                warnWhenUnsavedChanges: true,
+                projectId: "ErP-Garment-1",
+                disableTelemetry: true,
+              }}
+            >
+              {children}
+              <RefineKbar />
+            </Refine>
+          </QueryClientProvider>
+        </ErrorBoundary>
       </RefineKbarProvider>
-      {/* DevtoolsPanel được đặt bên ngoài Refine nhưng vẫn trong QueryClientProvider */}
-      <DevtoolsPanel />
-    </QueryClientProvider>
+    </>
   );
 } 
