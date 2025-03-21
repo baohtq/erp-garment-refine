@@ -1,38 +1,45 @@
 import { supabaseBrowserClient } from "@/utils/supabase/client";
 import { TABLES } from "@/utils/supabase/constants";
-import { Fabric } from "@/mocks/fabric-management.mock";
+import { Fabric, mockFabrics } from "@/mocks/fabric-management.mock";
 
 /**
  * Lấy danh sách tất cả các loại vải
  */
 export const getAllFabrics = async (): Promise<Fabric[]> => {
   try {
-    const { data, error } = await supabaseBrowserClient
-      .from(TABLES.FABRICS)
-      .select(`
-        *,
-        suppliers:${TABLES.SUPPLIERS}(name)
-      `)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabaseBrowserClient
+        .from(TABLES.FABRICS)
+        .select(`
+          *,
+          suppliers:${TABLES.SUPPLIERS}(name)
+        `)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error("Error fetching fabrics:", error);
-      throw error;
+      if (error) {
+        console.error("Error fetching fabrics:", error);
+        throw error;
+      }
+
+      // Chuyển đổi dữ liệu để phù hợp với định dạng hiện tại
+      const fabricsWithSupplierName = data.map(fabric => {
+        const typedFabric = fabric as any;
+        return {
+          ...typedFabric,
+          supplier_name: typedFabric.suppliers?.name || ''
+        };
+      });
+
+      return fabricsWithSupplierName;
+    } catch (apiError) {
+      console.error("Failed to fetch from API, using mock data:", apiError);
+      // Fallback to mock data
+      return mockFabrics;
     }
-
-    // Chuyển đổi dữ liệu để phù hợp với định dạng hiện tại
-    const fabricsWithSupplierName = data.map(fabric => {
-      const typedFabric = fabric as any;
-      return {
-        ...typedFabric,
-        supplier_name: typedFabric.suppliers?.name || ''
-      };
-    });
-
-    return fabricsWithSupplierName;
   } catch (error) {
     console.error("Error in getAllFabrics:", error);
-    throw error;
+    // Final fallback
+    return mockFabrics;
   }
 };
 

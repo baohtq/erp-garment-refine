@@ -1,204 +1,212 @@
-import React from 'react';
-
-interface FabricInventory {
-  id: number;
-  fabric_id: number;
-  fabric_name?: string;
-  lot_number: string;
-  supplier_code: string;
-  roll_id: string;
-  length: number;
-  width: number;
-  weight: number;
-  defect_notes: string | null;
-  quality_grade: string;
-  location: string;
-  status: string;
-  color_code: string;
-  image_url: string;
-  created_at: string;
-  updated_at: string;
-}
+import React, { useMemo } from 'react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  ColumnDef
+} from '@tanstack/react-table';
+import { format } from 'date-fns';
+import { FabricInventory } from '@/types/fabric-management';
+import Image from 'next/image';
 
 interface InventoryTableProps {
-  inventory: FabricInventory[];
+  data: FabricInventory[];
+  isLoading: boolean;
+  edit: (id: string | number) => void;
+  show: (id: string | number) => void;
+  handlePrefetch?: (id: string | number) => void;
 }
 
-const InventoryTable: React.FC<InventoryTableProps> = ({ inventory }) => {
-  const getStatusBadge = (status: string) => {
-    let bgColor = '';
-    let textColor = '';
+export const InventoryTable: React.FC<InventoryTableProps> = ({
+  data,
+  isLoading,
+  edit,
+  show,
+  handlePrefetch,
+}) => {
+  // Cấu hình các cột trong bảng
+  const columns = useMemo<ColumnDef<FabricInventory>[]>(
+    () => [
+      {
+        header: 'ID',
+        accessorKey: 'id',
+        cell: info => <span className="text-sm font-medium">{info.getValue() as string}</span>,
+      },
+      {
+        header: 'Mã vải',
+        accessorKey: 'fabric_code',
+        cell: info => <span className="text-sm font-medium">{info.getValue() as string}</span>,
+      },
+      {
+        header: 'Hình ảnh',
+        accessorKey: 'image_url',
+        cell: info => (
+          <div className="w-12 h-12 relative">
+            {info.getValue() ? (
+              <Image
+                src={info.getValue() as string}
+                alt="Fabric"
+                className="rounded-md object-cover"
+                width={48}
+                height={48}
+              />
+            ) : (
+              <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
+                <span className="text-xs text-gray-500">No image</span>
+              </div>
+            )}
+          </div>
+        ),
+      },
+      {
+        header: 'Tên vải',
+        accessorKey: 'fabric_name',
+        cell: ({ row }) => (
+          <div>
+            <p className="font-medium">{row.original.fabric_name}</p>
+            <p className="text-xs text-gray-500">
+              {(row.original as any).color || 'N/A'} / {(row.original as any).pattern || 'N/A'}
+            </p>
+          </div>
+        ),
+      },
+      {
+        header: 'Lô',
+        accessorKey: 'lot_number',
+        cell: info => <span className="text-sm">{info.getValue() as string}</span>,
+      },
+      {
+        header: 'Số lượng',
+        accessorKey: 'quantity',
+        cell: info => (
+          <span className="text-sm">
+            {(info.getValue() as number).toLocaleString('vi-VN')} m
+          </span>
+        ),
+      },
+      {
+        header: 'Vị trí',
+        accessorKey: 'storage_location',
+        cell: info => <span className="text-sm">{info.getValue() as string}</span>,
+      },
+      {
+        header: 'Ngày nhập',
+        accessorKey: 'created_at',
+        cell: info => (
+          <span className="text-sm">
+            {format(new Date(info.getValue() as string), 'dd/MM/yyyy')}
+          </span>
+        ),
+      },
+      {
+        header: 'Trạng thái',
+        accessorKey: 'status',
+        cell: info => {
+          const status = info.getValue() as string;
+          let statusClass = '';
+          
+          switch (status) {
+            case 'available':
+              statusClass = 'bg-green-100 text-green-800';
+              break;
+            case 'reserved':
+              statusClass = 'bg-yellow-100 text-yellow-800';
+              break;
+            case 'out_of_stock':
+              statusClass = 'bg-red-100 text-red-800';
+              break;
+            default:
+              statusClass = 'bg-gray-100 text-gray-800';
+          }
+          
+          return (
+            <span className={`text-xs px-2 py-1 rounded-full ${statusClass}`}>
+              {status === 'available' && 'Có sẵn'}
+              {status === 'reserved' && 'Đã đặt'}
+              {status === 'out_of_stock' && 'Hết hàng'}
+              {!['available', 'reserved', 'out_of_stock'].includes(status) && status}
+            </span>
+          );
+        },
+      },
+      {
+        header: 'Thao tác',
+        id: 'actions',
+        cell: ({ row }) => (
+          <div className="flex space-x-1">
+            <button 
+              onClick={() => show(row.original.id)} 
+              className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium"
+            >
+              Xem
+            </button>
+            <button 
+              onClick={() => edit(row.original.id)} 
+              className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium"
+            >
+              Sửa
+            </button>
+            <button 
+              onClick={() => handlePrefetch?.(row.original.id)} 
+              className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium"
+            >
+              Xóa
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [edit, show, handlePrefetch]
+  );
 
-    switch (status) {
-      case 'available':
-        bgColor = 'bg-green-100';
-        textColor = 'text-green-800';
-        break;
-      case 'reserved':
-        bgColor = 'bg-yellow-100';
-        textColor = 'text-yellow-800';
-        break;
-      case 'in_use':
-        bgColor = 'bg-blue-100';
-        textColor = 'text-blue-800';
-        break;
-      case 'used':
-        bgColor = 'bg-gray-100';
-        textColor = 'text-gray-800';
-        break;
-      default:
-        bgColor = 'bg-gray-100';
-        textColor = 'text-gray-800';
-        break;
-    }
-
-    const statusText = () => {
-      switch(status) {
-        case 'available': return 'Khả dụng';
-        case 'reserved': return 'Đã đặt';
-        case 'in_use': return 'Đang sử dụng';
-        case 'used': return 'Đã sử dụng';
-        default: return status;
-      }
-    };
-
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgColor} ${textColor}`}>
-        {statusText()}
-      </span>
-    );
-  };
-
-  const getQualityBadge = (quality: string) => {
-    let bgColor = '';
-    let textColor = '';
-
-    switch (quality) {
-      case 'A':
-        bgColor = 'bg-green-100';
-        textColor = 'text-green-800';
-        break;
-      case 'B':
-        bgColor = 'bg-yellow-100';
-        textColor = 'text-yellow-800';
-        break;
-      case 'C':
-        bgColor = 'bg-red-100';
-        textColor = 'text-red-800';
-        break;
-      default:
-        bgColor = 'bg-gray-100';
-        textColor = 'text-gray-800';
-        break;
-    }
-
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgColor} ${textColor}`}>
-        {quality}
-      </span>
-    );
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
-  };
-
+  // Table implementation simplified for clarity
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+  
+  if (isLoading) {
+    return <div className="p-4 text-center">Đang tải...</div>;
+  }
+  
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Hình ảnh
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Mã sản xuất
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Loại vải
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Màu sắc
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Số lô
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Chiều dài
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Khổ (cm)
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Trọng lượng (kg)
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Chất lượng
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Vị trí
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Trạng thái
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Ngày nhập
-            </th>
-          </tr>
+          {table.getHeaderGroups().map(headerGroup => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map(header => (
+                <th
+                  key={header.id}
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                </th>
+              ))}
+            </tr>
+          ))}
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {inventory.length === 0 ? (
-            <tr>
-              <td colSpan={12} className="px-6 py-4 text-center text-sm text-gray-500">
-                Không có dữ liệu
-              </td>
+          {table.getRowModel().rows.map(row => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map(cell => (
+                <td
+                  key={cell.id}
+                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
             </tr>
-          ) : (
-            inventory.map((item) => (
-              <tr key={item.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="h-16 w-16 overflow-hidden rounded-md">
-                    <img 
-                      src={item.image_url} 
-                      alt={`Mẫu vải ${item.fabric_name}`} 
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = "https://via.placeholder.com/150?text=No+Image";
-                      }}
-                    />
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{item.supplier_code}</div>
-                  <div className="text-xs text-gray-500">Mã nội bộ: {item.roll_id}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.fabric_name || `Vải #${item.fabric_id}`}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div 
-                      className="h-6 w-6 rounded-full border border-gray-300" 
-                      style={{ backgroundColor: item.color_code }}
-                    ></div>
-                    <span className="ml-2 text-sm text-gray-500">{item.color_code}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.lot_number}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.length} m</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.width}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.weight}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getQualityBadge(item.quality_grade)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.location}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{getStatusBadge(item.status)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(item.created_at)}</td>
-              </tr>
-            ))
-          )}
+          ))}
         </tbody>
       </table>
     </div>
   );
-};
-
-export default InventoryTable; 
+}; 

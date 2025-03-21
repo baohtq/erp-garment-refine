@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { RefineClient } from "./client";
-import AppLayout from "@components/layout/AppLayout";
+import AppLayout from "@/components/layout/AppLayout";
+import Todo from "@/components/Todo";
 
 export default function Dashboard() {
   const [isClient, setIsClient] = useState(false);
@@ -77,7 +78,7 @@ export default function Dashboard() {
                   <div className="bg-green-50 dark:bg-green-900/20 px-2 py-1.5 rounded-lg">
                     <div className="text-lg font-semibold text-green-600 dark:text-green-400">{stats.ordersCompleted}</div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">Hoàn thành</div>
-                </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -410,8 +411,14 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+
+          {/* Thêm component Todo */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Todo />
+          </div>
         </div>
       </AppLayout>
     </RefineClient>
   );
 }
+

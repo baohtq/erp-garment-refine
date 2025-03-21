@@ -6,6 +6,8 @@ import { ColumnDef, flexRender } from "@tanstack/react-table";
 import React from "react";
 
 export default function CategoryList() {
+  const { edit, show, create } = useNavigation();
+  
   const columns = React.useMemo<ColumnDef<any>[]>(
     () => [
       {
@@ -51,10 +53,8 @@ export default function CategoryList() {
         },
       },
     ],
-    []
+    [edit, show]
   );
-
-  const { edit, show, create } = useNavigation();
 
   const {
     getHeaderGroups,

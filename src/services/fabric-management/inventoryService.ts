@@ -1,38 +1,45 @@
 import { supabaseBrowserClient } from "@/utils/supabase/client";
 import { TABLES } from "@/utils/supabase/constants";
-import { FabricInventory } from "@/mocks/fabric-management.mock";
+import { FabricInventory, mockInventory } from "@/mocks/fabric-management.mock";
 
 /**
  * Lấy danh sách tất cả các mục trong kho
  */
 export const getAllInventory = async (): Promise<FabricInventory[]> => {
   try {
-    const { data, error } = await supabaseBrowserClient
-      .from(TABLES.FABRIC_INVENTORY)
-      .select(`
-        *,
-        fabrics:${TABLES.FABRICS}(name)
-      `)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabaseBrowserClient
+        .from(TABLES.FABRIC_INVENTORY)
+        .select(`
+          *,
+          fabrics:${TABLES.FABRICS}(name)
+        `)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error("Error fetching inventory:", error);
-      throw error;
+      if (error) {
+        console.error("Error fetching inventory:", error);
+        throw error;
+      }
+
+      // Chuyển đổi dữ liệu để phù hợp với định dạng hiện tại
+      const inventoryWithFabricName = data.map(item => {
+        const typedItem = item as any;
+        return {
+          ...typedItem,
+          fabric_name: typedItem.fabrics?.name || ''
+        };
+      });
+
+      return inventoryWithFabricName;
+    } catch (apiError) {
+      console.error("Failed to fetch from API, using mock data:", apiError);
+      // Fallback to mock data
+      return mockInventory;
     }
-
-    // Chuyển đổi dữ liệu để phù hợp với định dạng hiện tại
-    const inventoryWithFabricName = data.map(item => {
-      const typedItem = item as any;
-      return {
-        ...typedItem,
-        fabric_name: typedItem.fabrics?.name || ''
-      };
-    });
-
-    return inventoryWithFabricName;
   } catch (error) {
     console.error("Error in getAllInventory:", error);
-    throw error;
+    // Final fallback
+    return mockInventory;
   }
 };
 

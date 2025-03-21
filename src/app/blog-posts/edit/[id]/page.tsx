@@ -2,7 +2,7 @@
 
 import { useNavigation, useSelect } from "@refinedev/core";
 import { useForm } from "@refinedev/react-hook-form";
-import React from "react";
+import React, { useEffect } from "react";
 
 export default function BlogPostCreate() {
   const { list } = useNavigation();
@@ -28,9 +28,13 @@ export default function BlogPostCreate() {
     defaultValue: blogPostsData?.categories?.id,
   });
 
-  React.useEffect(() => {
-    setValue("categoryId", blogPostsData?.categories?.id);
-  }, [categoryOptions]);
+  useEffect(() => {
+    if (blogPostsData) {
+      setValue("title", blogPostsData.title);
+      setValue("content", blogPostsData.content);
+      setValue("category.id", blogPostsData?.categories?.id);
+    }
+  }, [blogPostsData, setValue]);
 
   return (
     <div style={{ padding: "16px" }}>

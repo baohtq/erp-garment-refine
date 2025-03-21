@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Product, Status, PRODUCT_CATEGORIES } from '@/types';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_KEY } from '@utils/supabase/constants';
+import Image from 'next/image';
 
 interface ProductFormProps {
   product?: Partial<Product>;
@@ -189,11 +190,25 @@ export default function ProductForm({ product, onSave, onCancel }: ProductFormPr
         <label className="block text-sm font-medium text-gray-700">Hình ảnh</label>
         <div className="mt-1 flex items-center space-x-4">
           {imagePreview && (
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="h-20 w-20 object-cover rounded-md"
-            />
+            <div className="relative w-40 h-40">
+              <Image 
+                src={imagePreview}
+                alt="Product preview"
+                className="object-cover rounded-md"
+                width={160}
+                height={160}
+              />
+              <button
+                type="button"
+                onClick={() => setImagePreview(null)}
+                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                aria-label="Remove image"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           )}
           <input
             type="file"

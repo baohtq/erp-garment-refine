@@ -3,6 +3,8 @@
 import type { PropsWithChildren } from "react";
 import { Breadcrumb } from "../breadcrumb";
 import { Menu } from "../menu";
+import { ClientAuth } from "./ClientAuth";
+import { ClientMain } from "./ClientMain";
 
 export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
@@ -15,3 +17,5 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
     </div>
   );
 };
+
+export { ClientAuth, ClientMain };

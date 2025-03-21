@@ -5,7 +5,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { supabaseBrowserClient } from "@/utils/supabase/client";
 import FabricTable from "@/components/fabric-management/FabricTable";
 import FabricForm from "@/components/fabric-management/FabricForm";
-import InventoryTable from "@/components/fabric-management/InventoryTable";
+import { InventoryTable } from "@/components/fabric-management/InventoryTable";
 import InventoryForm from "@/components/fabric-management/InventoryForm";
 import CuttingOrderList from "@/components/fabric-management/CuttingOrderList";
 import { Tabs, Tab } from "@/components/fabric-management/Tabs";
@@ -718,7 +718,13 @@ export default function FabricManagementPage() {
               {isLoading ? (
                 <div className="text-center py-4">Đang tải dữ liệu...</div>
               ) : (
-                <InventoryTable inventory={inventory} />
+                <InventoryTable 
+                  data={inventory as any} 
+                  isLoading={isLoading}
+                  edit={(id) => console.log('Edit inventory item:', id)}
+                  show={(id) => console.log('Show inventory item:', id)}
+                  handlePrefetch={(id) => console.log('Prefetch inventory item:', id)}
+                />
               )}
             </div>
           </Tab>

@@ -1,13 +1,12 @@
-import React from "react";
-import { Metadata } from "next";
-import "@styles/global.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "@/styles/global.css";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ERP Quản Lý Sản Xuất May Mặc",
-  description: "Hệ thống quản lý hoạt động sản xuất may mặc",
-  icons: {
-    icon: "/favicon.ico",
-  },
+  title: "ERP Garment - Hệ thống quản lý may mặc",
+  description: "Hệ thống quản lý cho doanh nghiệp may mặc",
 };
 
 export default function RootLayout({
@@ -17,10 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <head>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-      </head>
-      <body>
+      <body className={inter.className}>
         {children}
       </body>
     </html>
