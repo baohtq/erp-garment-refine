@@ -50,3 +50,44 @@ export enum UserRole {
   HR = "hr",
   QUALITY = "quality",
 }
+
+// Các trạng thái cho kho vải
+export enum FabricStatus {
+  AVAILABLE = "available",
+  RESERVED = "reserved",
+  IN_USE = "in_use", 
+  USED = "used",
+}
+
+// Cấp chất lượng vải
+export enum FabricQualityGrade {
+  A = "A",
+  B = "B",
+  C = "C",
+  D = "D",
+}
+
+// Trạng thái kiểm kê
+export enum InventoryCheckStatus {
+  DRAFT = "draft",
+  IN_PROGRESS = "in-progress",
+  COMPLETED = "completed",
+}
+
+// Các bảng Supabase
+export const TABLES = {
+  FABRICS: "fabrics",
+  FABRIC_INVENTORY: "fabric_inventory",
+  CUTTING_ORDERS: "cutting_orders",
+  CUTTING_ORDER_DETAILS: "cutting_order_details",
+  FABRIC_ISSUES: "fabric_issues",
+  FABRIC_ISSUE_ITEMS: "fabric_issue_items",
+  INVENTORY_CHECKS: "inventory_checks",
+  INVENTORY_CHECK_ITEMS: "inventory_check_items",
+  SUPPLIERS: "suppliers",
+  EMPLOYEES: "employees",
+  QUALITY_CONTROL_RECORDS: "quality_control_records",
+  QUALITY_DEFECTS: "quality_defects",
+  WAREHOUSES: "warehouses",
+  PRODUCTION_ORDERS: "production_orders"
+};

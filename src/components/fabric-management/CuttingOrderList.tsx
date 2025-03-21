@@ -18,9 +18,15 @@ interface CuttingOrder {
 
 interface CuttingOrderListProps {
   cuttingOrders: CuttingOrder[];
+  onView?: (cuttingOrder: CuttingOrder) => void;
+  onStartCutting?: (cuttingOrder: CuttingOrder) => void;
 }
 
-const CuttingOrderList: React.FC<CuttingOrderListProps> = ({ cuttingOrders }) => {
+const CuttingOrderList: React.FC<CuttingOrderListProps> = ({ 
+  cuttingOrders, 
+  onView,
+  onStartCutting 
+}) => {
   const getStatusBadge = (status: string) => {
     let bgColor = '';
     let textColor = '';
@@ -117,21 +123,19 @@ const CuttingOrderList: React.FC<CuttingOrderListProps> = ({ cuttingOrders }) =>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(order.actual_end_date)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
+                    type="button"
+                    onClick={() => onView && onView(order)}
                     className="text-indigo-600 hover:text-indigo-900 mr-3"
-                    onClick={() => {
-                      // TODO: Xem chi tiết lệnh cắt
-                    }}
                   >
-                    Chi tiết
+                    Xem chi tiết
                   </button>
                   {order.status === 'pending' && (
                     <button
+                      type="button"
+                      onClick={() => onStartCutting && onStartCutting(order)}
                       className="text-green-600 hover:text-green-900"
-                      onClick={() => {
-                        // TODO: Bắt đầu tác nghiệp cắt
-                      }}
                     >
-                      Bắt đầu
+                      Bắt đầu cắt
                     </button>
                   )}
                 </td>
