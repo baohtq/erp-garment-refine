@@ -9,6 +9,85 @@
 
 Hệ thống ERP quản lý sản xuất ngành may mặc được xây dựng với [Refine](https://github.com/refinedev/refine) và [Supabase](https://supabase.com/).
 
+## Hướng dẫn thiết lập và chạy ERP Refine + Supabase
+
+### 1. Cài đặt các phụ thuộc
+
+```bash
+npm install
+```
+
+### 2. Cấu hình Supabase
+
+- Tạo tài khoản tại [Supabase](https://supabase.com/)
+- Tạo một dự án mới
+- Sao chép thông tin URL và API key từ mục Settings > API
+- Tạo file .env.local tại thư mục gốc và thêm các biến môi trường:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 3. Thiết lập cơ sở dữ liệu
+
+Chạy các migration SQL để thiết lập cơ sở dữ liệu:
+
+1. Truy cập vào dự án Supabase của bạn
+2. Mở SQL Editor
+3. Chạy các file SQL theo thứ tự sau:
+   - `src/utils/supabase/migrations/01_auth_users.sql`
+   - `src/utils/supabase/migrations/02_create_profiles_table.sql`
+   - `src/db/schema.sql`
+   - `src/db/rls-policies.sql`
+
+### 4. Chạy ứng dụng phát triển
+
+```bash
+npm run dev
+```
+
+Ứng dụng sẽ chạy tại địa chỉ http://localhost:3000.
+
+### 5. Đăng nhập và khởi tạo người dùng đầu tiên
+
+1. Đăng ký tài khoản admin đầu tiên
+2. Sử dụng SQL Editor của Supabase để cập nhật quyền admin:
+
+```sql
+UPDATE public.profiles
+SET role = 'admin'
+WHERE id = 'your_user_id';
+```
+
+### 6. Xây dựng ứng dụng cho môi trường production
+
+```bash
+npm run build
+```
+
+### 7. Khởi chạy ứng dụng production
+
+```bash
+npm start
+```
+
+## Kiến trúc ứng dụng
+
+Ứng dụng sử dụng các công nghệ sau:
+
+- **Next.js 14**: Framework React với App Router
+- **Refine**: Framework headless CRUD cho ứng dụng admin
+- **Supabase**: Backend-as-a-Service với PostgreSQL
+- **Tailwind CSS**: Utility-first CSS framework
+- **shadcn/ui**: Thư viện components dựa trên Radix UI
+
+## Khắc phục lỗi
+
+### Lỗi "relation "public.profiles" does not exist"
+
+Nếu bạn gặp lỗi này, hãy chạy migration `src/utils/supabase/migrations/02_create_profiles_table.sql` để tạo bảng profiles trong Supabase.
+
 ## Thiết lập môi trường
 
 ### 1. Cấu hình Supabase

@@ -207,4 +207,219 @@ CREATE TABLE IF NOT EXISTS public.production_progress (
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Website Module Tables
+
+-- Bảng thông tin trang web (website_info)
+CREATE TABLE IF NOT EXISTS public.website_info (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    company_name TEXT NOT NULL,
+    logo_url TEXT,
+    slogan TEXT,
+    description TEXT,
+    email TEXT,
+    phone TEXT,
+    address TEXT,
+    tax_code TEXT,
+    social_media JSONB, -- {facebook: url, linkedin: url, youtube: url}
+    meta_description TEXT,
+    meta_keywords TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Bảng trang (website_pages)
+CREATE TABLE IF NOT EXISTS public.website_pages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    content TEXT,
+    meta_title TEXT,
+    meta_description TEXT,
+    is_published BOOLEAN DEFAULT false,
+    publish_date TIMESTAMP WITH TIME ZONE,
+    sort_order INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Bảng banner (website_banners)
+CREATE TABLE IF NOT EXISTS public.website_banners (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    image_url TEXT NOT NULL,
+    link TEXT,
+    description TEXT,
+    is_active BOOLEAN DEFAULT true,
+    display_order INTEGER,
+    start_date TIMESTAMP WITH TIME ZONE,
+    end_date TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Bảng bài viết (website_blog_posts)
+CREATE TABLE IF NOT EXISTS public.website_blog_posts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    content TEXT,
+    excerpt TEXT,
+    featured_image TEXT,
+    author_id UUID REFERENCES auth.users(id),
+    status TEXT DEFAULT 'draft', -- 'draft', 'published', 'archived'
+    publish_date TIMESTAMP WITH TIME ZONE,
+    category_id UUID REFERENCES public.website_blog_categories(id),
+    views_count INTEGER DEFAULT 0,
+    meta_title TEXT,
+    meta_description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Bảng danh mục bài viết (website_blog_categories)
+CREATE TABLE IF NOT EXISTS public.website_blog_categories (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    description TEXT,
+    parent_id UUID REFERENCES public.website_blog_categories(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Bảng tag bài viết (website_blog_tags)
+CREATE TABLE IF NOT EXISTS public.website_blog_tags (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Bảng liên kết bài viết và tag (website_blog_post_tags)
+CREATE TABLE IF NOT EXISTS public.website_blog_post_tags (
+    post_id UUID REFERENCES public.website_blog_posts(id) ON DELETE CASCADE,
+    tag_id UUID REFERENCES public.website_blog_tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (post_id, tag_id)
+);
+
+-- Bảng khách hàng tiêu biểu (website_customers)
+CREATE TABLE IF NOT EXISTS public.website_customers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    logo_url TEXT,
+    description TEXT,
+    url TEXT,
+    display_order INTEGER,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Bảng đánh giá và phản hồi khách hàng (website_testimonials)
+CREATE TABLE IF NOT EXISTS public.website_testimonials (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    customer_name TEXT NOT NULL,
+    customer_position TEXT,
+    customer_company TEXT,
+    content TEXT NOT NULL,
+    rating INTEGER CHECK (rating BETWEEN 1 AND 5),
+    avatar_url TEXT,
+    is_active BOOLEAN DEFAULT true,
+    display_order INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Bảng yêu cầu liên hệ (website_contact_requests)
+CREATE TABLE IF NOT EXISTS public.website_contact_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT,
+    subject TEXT,
+    message TEXT NOT NULL,
+    status TEXT DEFAULT 'new', -- 'new', 'in_progress', 'responded', 'closed'
+    response TEXT,
+    responded_by UUID REFERENCES auth.users(id),
+    responded_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Bảng vị trí tuyển dụng (website_job_positions)
+CREATE TABLE IF NOT EXISTS public.website_job_positions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    department TEXT,
+    location TEXT,
+    job_type TEXT, -- 'full_time', 'part_time', 'contract', 'internship'
+    description TEXT,
+    requirements TEXT,
+    benefits TEXT,
+    salary_range TEXT,
+    is_active BOOLEAN DEFAULT true,
+    application_deadline DATE,
+    publish_date TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Bảng đơn ứng tuyển (website_job_applications)
+CREATE TABLE IF NOT EXISTS public.website_job_applications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    job_position_id UUID REFERENCES public.website_job_positions(id) ON DELETE CASCADE,
+    applicant_name TEXT NOT NULL,
+    applicant_email TEXT NOT NULL,
+    applicant_phone TEXT,
+    resume_url TEXT,
+    cover_letter TEXT,
+    status TEXT DEFAULT 'received', -- 'received', 'reviewing', 'interview', 'rejected', 'accepted'
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Fix foreign key reference (website_blog_posts references website_blog_categories)
+-- Need to recreate website_blog_categories before website_blog_posts
+DROP TABLE IF EXISTS public.website_blog_post_tags;
+DROP TABLE IF EXISTS public.website_blog_posts;
+DROP TABLE IF EXISTS public.website_blog_categories;
+
+-- Recreate in correct order
+CREATE TABLE IF NOT EXISTS public.website_blog_categories (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    description TEXT,
+    parent_id UUID REFERENCES public.website_blog_categories(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.website_blog_posts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    content TEXT,
+    excerpt TEXT,
+    featured_image TEXT,
+    author_id UUID REFERENCES auth.users(id),
+    status TEXT DEFAULT 'draft', -- 'draft', 'published', 'archived'
+    publish_date TIMESTAMP WITH TIME ZONE,
+    category_id UUID REFERENCES public.website_blog_categories(id),
+    views_count INTEGER DEFAULT 0,
+    meta_title TEXT,
+    meta_description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.website_blog_post_tags (
+    post_id UUID REFERENCES public.website_blog_posts(id) ON DELETE CASCADE,
+    tag_id UUID REFERENCES public.website_blog_tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (post_id, tag_id)
 ); 

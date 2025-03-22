@@ -1,17 +1,23 @@
-import { Metadata } from "next";
+import '@/app/globals.css';
 import { Inter } from "next/font/google";
-import "../styles/global.css";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Metadata, Viewport } from 'next';
+import { APP_NAME } from '@/config/constants';
+import { Providers } from '@/providers';
 
 const inter = Inter({ subsets: ["latin"] });
 
+// Metadata must be exported from a Server Component
 export const metadata: Metadata = {
-  title: "ERP Garment",
-  description: "Hệ thống quản lý may mặc",
-  icons: {
-    icon: "/favicon.ico",
+  title: {
+    default: APP_NAME,
+    template: `%s | ${APP_NAME}`,
   },
+  description: "Hệ thống quản lý sản xuất may mặc",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -22,19 +28,9 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <body className={inter.className}>
-        {children}
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-        />
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

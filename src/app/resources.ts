@@ -2,6 +2,10 @@ export const resources = [
   {
     name: "dashboard",
     list: "/",
+    meta: {
+      label: "Tổng quan",
+      icon: "home"
+    }
   },
   {
     name: "users",
@@ -76,6 +80,7 @@ export const resources = [
     list: "/suppliers",
     meta: {
       label: "Nhà cung cấp",
+      icon: "suppliers",
       canDelete: true,
     }
   },
@@ -84,6 +89,7 @@ export const resources = [
     list: "/materials",
     meta: {
       label: "Nguyên phụ liệu",
+      icon: "materials",
       canDelete: true,
     }
   },
@@ -92,6 +98,7 @@ export const resources = [
     list: "/products",
     meta: {
       label: "Sản phẩm",
+      icon: "products",
       canDelete: true,
     }
   },
@@ -100,6 +107,7 @@ export const resources = [
     list: "/product-standards",
     meta: {
       label: "Định mức sản phẩm",
+      icon: "production",
     }
   },
   {
@@ -107,6 +115,7 @@ export const resources = [
     list: "/production-orders",
     meta: {
       label: "Đơn hàng sản xuất",
+      icon: "orders",
     }
   },
   {
@@ -114,6 +123,7 @@ export const resources = [
     list: "/production-stages",
     meta: {
       label: "Công đoạn sản xuất",
+      icon: "production",
     }
   },
   {
@@ -121,6 +131,7 @@ export const resources = [
     list: "/production-progress",
     meta: {
       label: "Tiến độ sản xuất",
+      icon: "production",
     }
   },
   {
@@ -128,6 +139,7 @@ export const resources = [
     list: "/finished-products",
     meta: {
       label: "Thành phẩm",
+      icon: "products",
     }
   },
   {
@@ -135,6 +147,7 @@ export const resources = [
     list: "/employees",
     meta: {
       label: "Nhân viên",
+      icon: "users",
       canDelete: true,
     }
   },
@@ -143,6 +156,7 @@ export const resources = [
     list: "/material-receipts",
     meta: {
       label: "Nhập nguyên phụ liệu",
+      icon: "inventory",
     }
   },
   {
@@ -150,6 +164,7 @@ export const resources = [
     list: "/material-issues",
     meta: {
       label: "Xuất nguyên phụ liệu",
+      icon: "inventory",
     }
   },
   {
@@ -157,6 +172,98 @@ export const resources = [
     list: "/employee-productivity",
     meta: {
       label: "Năng suất nhân viên",
+      icon: "reports",
+    }
+  },
+  {
+    name: "website",
+    list: "/website",
+    meta: {
+      label: "Website",
+      icon: "globe",
+      description: "Quản lý nội dung và thông tin website",
+      canDelete: false
+    }
+  },
+  {
+    name: "website-info",
+    list: "/website/info",
+    meta: {
+      label: "Thông tin",
+      parent: "website",
+      canDelete: false
+    }
+  },
+  {
+    name: "website-banners",
+    list: "/website/banners",
+    meta: {
+      label: "Banner",
+      parent: "website",
+      canDelete: true
+    }
+  },
+  {
+    name: "website-pages",
+    list: "/website/pages",
+    meta: {
+      label: "Trang",
+      parent: "website",
+      canDelete: true
+    }
+  },
+  {
+    name: "website-blog",
+    list: "/website/blog",
+    meta: {
+      label: "Blog & Tin tức",
+      parent: "website",
+      canDelete: true
+    }
+  },
+  {
+    name: "website-customers",
+    list: "/website/customers",
+    meta: {
+      label: "Khách hàng",
+      parent: "website",
+      canDelete: true
+    }
+  },
+  {
+    name: "website-testimonials",
+    list: "/website/testimonials",
+    meta: {
+      label: "Đánh giá",
+      parent: "website",
+      canDelete: true
+    }
+  },
+  {
+    name: "website-contacts",
+    list: "/website/contacts",
+    meta: {
+      label: "Liên hệ",
+      parent: "website",
+      canDelete: true
+    }
+  },
+  {
+    name: "website-jobs",
+    list: "/website/jobs",
+    meta: {
+      label: "Tuyển dụng",
+      parent: "website",
+      canDelete: true
+    }
+  },
+  {
+    name: "website-settings",
+    list: "/website/settings",
+    meta: {
+      label: "Cài đặt",
+      parent: "website",
+      canDelete: false
     }
   },
 ]; 

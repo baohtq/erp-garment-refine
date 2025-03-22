@@ -158,3 +158,173 @@ CREATE POLICY "Cho phép sửa supplier_contract_payments" ON public.supplier_co
 CREATE POLICY "Cho phép xóa supplier_contract_payments" ON public.supplier_contract_payments FOR DELETE USING (auth.role() = 'authenticated');
 
 -- RLS cho bảng material_types 
+
+-- Website Module RLS Policies
+
+-- Enable RLS
+ALTER TABLE public.website_info ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_pages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_banners ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_blog_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_blog_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_blog_tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_blog_post_tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_testimonials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_contact_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_job_positions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.website_job_applications ENABLE ROW LEVEL SECURITY;
+
+-- website_info RLS policies
+CREATE POLICY "Allow read access to website_info for all" 
+ON public.website_info FOR SELECT USING (true);
+
+CREATE POLICY "Allow insert, update, delete access to website_info for admins" 
+ON public.website_info FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+-- website_pages RLS policies
+CREATE POLICY "Allow read access to published website_pages for all" 
+ON public.website_pages FOR SELECT USING (is_published = true);
+
+CREATE POLICY "Allow read access to all website_pages for admins" 
+ON public.website_pages FOR SELECT USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+CREATE POLICY "Allow insert, update, delete access to website_pages for admins" 
+ON public.website_pages FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+-- website_banners RLS policies
+CREATE POLICY "Allow read access to active website_banners for all" 
+ON public.website_banners FOR SELECT USING (
+  is_active = true AND 
+  (start_date IS NULL OR start_date <= now()) AND 
+  (end_date IS NULL OR end_date >= now())
+);
+
+CREATE POLICY "Allow read access to all website_banners for admins" 
+ON public.website_banners FOR SELECT USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+CREATE POLICY "Allow insert, update, delete access to website_banners for admins" 
+ON public.website_banners FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+-- website_blog_categories RLS policies
+CREATE POLICY "Allow read access to website_blog_categories for all" 
+ON public.website_blog_categories FOR SELECT USING (true);
+
+CREATE POLICY "Allow insert, update, delete access to website_blog_categories for admins" 
+ON public.website_blog_categories FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+-- website_blog_posts RLS policies
+CREATE POLICY "Allow read access to published website_blog_posts for all" 
+ON public.website_blog_posts FOR SELECT USING (
+  status = 'published' AND 
+  publish_date <= now()
+);
+
+CREATE POLICY "Allow read access to all website_blog_posts for admins" 
+ON public.website_blog_posts FOR SELECT USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+CREATE POLICY "Allow insert, update, delete access to website_blog_posts for admins and authors" 
+ON public.website_blog_posts FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin') OR
+  auth.uid() = author_id
+);
+
+-- website_blog_tags RLS policies
+CREATE POLICY "Allow read access to website_blog_tags for all" 
+ON public.website_blog_tags FOR SELECT USING (true);
+
+CREATE POLICY "Allow insert, update, delete access to website_blog_tags for admins" 
+ON public.website_blog_tags FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+-- website_blog_post_tags RLS policies
+CREATE POLICY "Allow read access to website_blog_post_tags for all" 
+ON public.website_blog_post_tags FOR SELECT USING (true);
+
+CREATE POLICY "Allow insert, update, delete access to website_blog_post_tags for admins and post authors" 
+ON public.website_blog_post_tags FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin') OR
+  EXISTS (
+    SELECT 1 FROM public.website_blog_posts
+    WHERE id = post_id AND author_id = auth.uid()
+  )
+);
+
+-- website_customers RLS policies
+CREATE POLICY "Allow read access to active website_customers for all" 
+ON public.website_customers FOR SELECT USING (is_active = true);
+
+CREATE POLICY "Allow read access to all website_customers for admins" 
+ON public.website_customers FOR SELECT USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+CREATE POLICY "Allow insert, update, delete access to website_customers for admins" 
+ON public.website_customers FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+-- website_testimonials RLS policies
+CREATE POLICY "Allow read access to active website_testimonials for all" 
+ON public.website_testimonials FOR SELECT USING (is_active = true);
+
+CREATE POLICY "Allow read access to all website_testimonials for admins" 
+ON public.website_testimonials FOR SELECT USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+CREATE POLICY "Allow insert, update, delete access to website_testimonials for admins" 
+ON public.website_testimonials FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+-- website_contact_requests RLS policies
+CREATE POLICY "Allow insert access to website_contact_requests for all" 
+ON public.website_contact_requests FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow read, update, delete access to website_contact_requests for admins" 
+ON public.website_contact_requests FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+-- website_job_positions RLS policies
+CREATE POLICY "Allow read access to active website_job_positions for all" 
+ON public.website_job_positions FOR SELECT USING (
+  is_active = true AND 
+  publish_date <= now() AND
+  (application_deadline IS NULL OR application_deadline >= CURRENT_DATE)
+);
+
+CREATE POLICY "Allow read access to all website_job_positions for admins" 
+ON public.website_job_positions FOR SELECT USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+CREATE POLICY "Allow insert, update, delete access to website_job_positions for admins" 
+ON public.website_job_positions FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+);
+
+-- website_job_applications RLS policies
+CREATE POLICY "Allow insert access to website_job_applications for all" 
+ON public.website_job_applications FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow read, update, delete access to website_job_applications for admins" 
+ON public.website_job_applications FOR ALL USING (
+  auth.uid() IN (SELECT id FROM auth.users WHERE role = 'admin')
+); 
